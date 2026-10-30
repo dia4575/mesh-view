@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0f14" />
+  <meta name="description" content="MeshView Studio — Professional 3D Model Viewer & Inspector" />
+  <title>MeshView Studio</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="app">
+    <!-- Top Toolbar -->
+    <header id="toolbar">
+      <div class="toolbar-left">
+        <div class="brand">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          <span class="brand-name">MeshView<span class="accent">Studio</span></span>
+        </div>
+      </div>
+      <div class="toolbar-center">
+        <button id="btn-import" class="btn btn-primary" title="Import 3D Model (Ctrl+O)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          <span>Import</span>
+        </button>
+        <input type="file" id="file-input" multiple accept=".glb,.gltf,.obj,.OBJ,.mtl,.MTL,.stl,.fbx,.ply,.3mf,.off,.xyz,.png,.jpg,.jpeg,.webp,.bmp,.bin,image/*" hidden />
+        <button id="btn-clear" class="btn btn-ghost" title="Clear Scene" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          <span class="hide-sm">Clear</span>
+        </button>
+        <button id="btn-screenshot" class="btn btn-ghost" title="Screenshot" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span class="hide-sm">Shot</span>
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <button id="btn-toggle-left" class="btn btn-icon mobile-only" title="Hierarchy" aria-label="Toggle hierarchy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        </button>
+        <button id="btn-toggle-right" class="btn btn-icon mobile-only" title="Inspector" aria-label="Toggle inspector">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+        <button id="btn-fullscreen" class="btn btn-icon" title="Fullscreen" aria-label="Toggle fullscreen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="main">
+      <!-- Left Sidebar: Hierarchy -->
+      <aside id="sidebar-left" class="sidebar">
+        <div class="sidebar-header">
+          <h2>Scene</h2>
+          <button id="btn-close-left" class="btn btn-icon mobile-only" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="sidebar-section">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="search" id="hierarchy-search" placeholder="Filter objects..." />
+          </div>
+        </div>
+        <div id="hierarchy-tree" class="hierarchy-tree">
+          <div class="empty-state">
+            <p>No model loaded</p>
+            <p class="hint">Import a 3D file to begin</p>
+          </div>
+        </div>
+        <div class="sidebar-section file-info" id="file-info-panel">
+          <h3>File</h3>
+          <div id="file-info" class="info-list">
+            <div class="info-row"><span class="label">Name</span><span class="value">—</span></div>
+            <div class="info-row"><span class="label">Format</span><span class="value">—</span></div>
+            <div class="info-row"><span class="label">Size</span><span class="value">—</span></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Viewport -->
+      <div id="viewport-container">
+        <div id="viewport">
+          <canvas id="canvas"></canvas>
+          <div id="drop-overlay" class="drop-overlay">
+            <div class="drop-content">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              <p>Drop 3D models here</p>
+              <p class="formats">GLB · glTF · OBJ+MTL+textures · STL · FBX · PLY · 3MF</p>
+              <p class="formats" style="opacity:.7;font-size:12px">For OBJ rooms: select .obj + .mtl + all images together</p>
+            </div>
+          </div>
+          <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p id="loading-text">Loading model…</p>
+            <div class="progress-bar"><div id="progress-fill"></div></div>
+          </div>
+          <div id="error-toast" class="toast error hidden"></div>
+          <div id="info-toast" class="toast info hidden"></div>
+        </div>
+
+        <!-- Viewport Toolbar -->
+        <div id="viewport-toolbar">
+          <div class="vt-group">
+            <button class="vt-btn active" data-shading="material" title="Material Preview">Mat</button>
+            <button class="vt-btn" data-shading="solid" title="Solid">Solid</button>
+            <button class="vt-btn" data-shading="wireframe" title="Wireframe">Wire</button>
+            <button class="vt-btn" data-shading="wireframe-overlay" title="Wireframe Overlay">W+M</button>
+            <button class="vt-btn" data-shading="normals" title="Normals">Nrm</button>
+          </div>
+          <div class="vt-group">
+            <button class="vt-btn" id="btn-grid" title="Toggle Grid" aria-pressed="true">Grid</button>
+            <button class="vt-btn" id="btn-axes" title="Toggle Axes" aria-pressed="true">Axes</button>
+          </div>
+          <div class="vt-group">
+            <button class="vt-btn" id="btn-perspective" title="Perspective / Orthographic" aria-pressed="true">Persp</button>
+            <button class="vt-btn" data-view="front" title="Front View">F</button>
+            <button class="vt-btn" data-view="back" title="Back View">B</button>
+            <button class="vt-btn" data-view="left" title="Left View">L</button>
+            <button class="vt-btn" data-view="right" title="Right View">R</button>
+            <button class="vt-btn" data-view="top" title="Top View">T</button>
+            <button class="vt-btn" data-view="bottom" title="Bottom View">Bo</button>
+            <button class="vt-btn" data-view="iso" title="Isometric">Iso</button>
+          </div>
+          <div class="vt-group">
+            <button class="vt-btn" id="btn-fit" title="Fit to View">Fit</button>
+            <button class="vt-btn" id="btn-reset-cam" title="Reset Camera">Reset</button>
+            <button class="vt-btn" id="btn-measure" title="Measure Distance" aria-pressed="false">Meas</button>
+          </div>
+          <div class="vt-group bg-group">
+            <label title="Background">
+              <input type="color" id="bg-color" value="#1a1d26" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Animation controls -->
+        <div id="anim-controls" class="anim-controls hidden">
+          <button id="btn-anim-play" class="vt-btn" title="Play / Pause">▶</button>
+          <input type="range" id="anim-slider" min="0" max="100" value="0" step="0.1" />
+          <span id="anim-time">0.00s</span>
+          <select id="anim-clip"></select>
+        </div>
+
+        <!-- Measure readout -->
+        <div id="measure-readout" class="measure-readout hidden">
+          <span>Distance: <strong id="measure-value">0</strong> units</span>
+          <button id="btn-measure-clear" class="btn btn-ghost btn-sm">Clear</button>
+        </div>
+      </div>
+
+      <!-- Right Sidebar: Inspector -->
+      <aside id="sidebar-right" class="sidebar">
+        <div class="sidebar-header">
+          <h2>Inspector</h2>
+          <button id="btn-close-right" class="btn btn-icon mobile-only" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="sidebar-section">
+          <h3>Statistics</h3>
+          <div id="stats-panel" class="info-list">
+            <div class="info-row"><span class="label">Meshes</span><span class="value" id="stat-meshes">—</span></div>
+            <div class="info-row"><span class="label">Vertices</span><span class="value" id="stat-vertices">—</span></div>
+            <div class="info-row"><span class="label">Triangles</span><span class="value" id="stat-triangles">—</span></div>
+            <div class="info-row"><span class="label">Materials</span><span class="value" id="stat-materials">—</span></div>
+            <div class="info-row"><span class="label">Objects</span><span class="value" id="stat-objects">—</span></div>
+            <div class="info-row"><span class="label">Textures</span><span class="value" id="stat-textures">—</span></div>
+            <div class="info-row"><span class="label">Animations</span><span class="value" id="stat-anims">—</span></div>
+            <div class="info-row"><span class="label">Size X</span><span class="value" id="stat-size-x">—</span></div>
+            <div class="info-row"><span class="label">Size Y</span><span class="value" id="stat-size-y">—</span></div>
+            <div class="info-row"><span class="label">Size Z</span><span class="value" id="stat-size-z">—</span></div>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <h3>Lighting</h3>
+          <div class="control-list">
+            <label class="ctrl-row">
+              <span>Exposure</span>
+              <input type="range" id="ctrl-exposure" min="0.2" max="3" step="0.05" value="1" />
+              <span class="ctrl-val" id="val-exposure">1.00</span>
+            </label>
+            <label class="ctrl-row">
+              <span>Ambient</span>
+              <input type="range" id="ctrl-ambient" min="0" max="2" step="0.05" value="0.55" />
+              <span class="ctrl-val" id="val-ambient">0.55</span>
+            </label>
+            <label class="ctrl-row">
+              <span>Key Light</span>
+              <input type="range" id="ctrl-key" min="0" max="3" step="0.05" value="1.1" />
+              <span class="ctrl-val" id="val-key">1.10</span>
+            </label>
+            <label class="ctrl-row">
+              <span>Fill Light</span>
+              <input type="range" id="ctrl-fill" min="0" max="2" step="0.05" value="0.35" />
+              <span class="ctrl-val" id="val-fill">0.35</span>
+            </label>
+            <label class="ctrl-row">
+              <span>Environment</span>
+              <select id="ctrl-env">
+                <option value="none">None</option>
+                <option value="studio" selected>Studio</option>
+                <option value="neutral">Neutral</option>
+                <option value="warm">Warm</option>
+                <option value="cool">Cool</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <h3>Material Override</h3>
+          <div class="control-list">
+            <label class="ctrl-row">
+              <span>Color</span>
+              <input type="color" id="ctrl-mat-color" value="#c0c8d8" />
+            </label>
+            <label class="ctrl-row">
+              <span>Metalness</span>
+              <input type="range" id="ctrl-metal" min="0" max="1" step="0.05" value="0.1" />
+              <span class="ctrl-val" id="val-metal">0.10</span>
+            </label>
+            <label class="ctrl-row">
+              <span>Roughness</span>
+              <input type="range" id="ctrl-rough" min="0" max="1" step="0.05" value="0.6" />
+              <span class="ctrl-val" id="val-rough">0.60</span>
+            </label>
+            <div class="selected-actions" style="margin-top:8px">
+              <button id="btn-apply-mat" class="btn btn-ghost btn-sm" title="Apply override to solid shading">Apply to Solid</button>
+              <button id="btn-reset-mat" class="btn btn-ghost btn-sm" title="Restore original materials">Restore</button>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <h3>Materials</h3>
+          <div id="materials-panel" class="materials-list">
+            <div class="empty-state small"><p>No materials</p></div>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <h3>Selected Object</h3>
+          <div id="selected-info" class="info-list">
+            <div class="info-row"><span class="label">Name</span><span class="value">—</span></div>
+            <div class="info-row"><span class="label">Type</span><span class="value">—</span></div>
+            <div class="info-row"><span class="label">Vertices</span><span class="value">—</span></div>
+            <div class="info-row"><span class="label">Triangles</span><span class="value">—</span></div>
+          </div>
+          <div class="selected-actions">
+            <button id="btn-frame-selected" class="btn btn-ghost btn-sm" disabled>Frame</button>
+            <button id="btn-isolate" class="btn btn-ghost btn-sm" disabled>Isolate</button>
+            <button id="btn-hide-selected" class="btn btn-ghost btn-sm" disabled>Hide</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Mobile bottom bar -->
+    <nav id="mobile-bar" class="mobile-only">
+      <button class="mbar-btn" id="mbar-import" title="Import">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        <span>Import</span>
+      </button>
+      <button class="mbar-btn" id="mbar-shading" title="Shading">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 010 20"/></svg>
+        <span>Shade</span>
+      </button>
+      <button class="mbar-btn" id="mbar-views" title="Views">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span>Views</span>
+      </button>
+      <button class="mbar-btn" id="mbar-fit" title="Fit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        <span>Fit</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Mobile sheets -->
+  <div id="sheet-shading" class="bottom-sheet hidden">
+    <div class="sheet-handle"></div>
+    <h3>Shading</h3>
+    <div class="sheet-options">
+      <button data-shading="material" class="sheet-opt active">Material</button>
+      <button data-shading="solid" class="sheet-opt">Solid</button>
+      <button data-shading="wireframe" class="sheet-opt">Wireframe</button>
+      <button data-shading="wireframe-overlay" class="sheet-opt">Wire + Mat</button>
+      <button data-shading="normals" class="sheet-opt">Normals</button>
+    </div>
+  </div>
+  <div id="sheet-views" class="bottom-sheet hidden">
+    <div class="sheet-handle"></div>
+    <h3>Camera Views</h3>
+    <div class="sheet-options grid">
+      <button data-view="front" class="sheet-opt">Front</button>
+      <button data-view="back" class="sheet-opt">Back</button>
+      <button data-view="left" class="sheet-opt">Left</button>
+      <button data-view="right" class="sheet-opt">Right</button>
+      <button data-view="top" class="sheet-opt">Top</button>
+      <button data-view="bottom" class="sheet-opt">Bottom</button>
+      <button data-view="iso" class="sheet-opt">Isometric</button>
+      <button id="sheet-persp" class="sheet-opt">Persp / Ortho</button>
+    </div>
+  </div>
+  <div id="sheet-backdrop" class="sheet-backdrop hidden"></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
